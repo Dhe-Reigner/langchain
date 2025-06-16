@@ -151,19 +151,18 @@
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from dotenv import load_dotenv
 from newspaper import Article
+from dotenv import load_dotenv
 
+import os, requests, json
 
-import json, os, requests
 
 load_dotenv()
-
-
 api_key = os.getenv("OPENAI_API_KEY")
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7, openai_api_key = api_key)
 
-headers  = {
+llm = ChatOpenAI(model='gpt-4', temperature=0.7, openai_api_key = api_key)
+
+headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
 }
 
@@ -172,42 +171,36 @@ article_url = "https://www.artificialintelligence-news.com/2022/01/25/meta-claim
 session = requests.Session()
 
 try:
-    response = session.get(article_url, headers=headers, timeout=10)
+    response = session.get(article_url,headers=headers, timeout=10)
 
     if response.status_code == 200:
-        article = Article(article_url)
+        article=Article(article_url)
         article.download()
         article.parse()
-
-
-        print(f"Title: {article.title}")
-        print(f"Text: {article.text}")
 
         article_title = article.title
         article_text = article.text
 
-        template = """You are a very good assistant that summarizes online articles.
+        print(f"Title:{article.title}")
+        print(f"Text:{article.text}")
 
-        Here's the article you want to summarize.
+        template = """You are an Intelligent Online Article Summarizer
+        Summarize the following article.
 
-        ===================
-        Title: {article_title}
+        Title:{article_title}
 
         {article_text}
 
-        ====================
-
-        Write a summary of the previous article.
+        Generate the previous article
         """
 
-        prompt = template.format(article_title=article_title, article_text=article_text)
-
+        prompt = template(article_title=article.title, article_text=article.text)
         messages = [HumanMessage(content=prompt)]
 
-        summary = llm(messages)
+        summary = llm.messages
         print(summary.content)
 
     else:
-        print(f"Failed to fetch article at {article_url}")
+        print(f"Failed to summarize {article_url}")
 except Exception as e:
-    print(f"Error occured while fetching article at {article_url} : {e}")
+    print(f"An error occured when summarizing {article_url}:{e}")
