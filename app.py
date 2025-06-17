@@ -171,36 +171,42 @@ article_url = "https://www.artificialintelligence-news.com/2022/01/25/meta-claim
 session = requests.Session()
 
 try:
-    response = session.get(article_url,headers=headers, timeout=10)
+    response = session.get(article_url,headers=headers, timeout=100)
 
-    if response.status_code == 200:
-        article=Article(article_url)
-        article.download()
-        article.parse()
+    # if response.status_code == 200:
+    #     article=Article(article_url)
+    #     article.download()
+    #     article.parse()
 
-        article_title = article.title
-        article_text = article.text
+    response.raise_for_status()
 
-        print(f"Title:{article.title}")
-        print(f"Text:{article.text}")
+    article = Article(article_url)
+    article.set_html(response.text)
+    article.parse()
 
-        template = """You are an Intelligent Online Article Summarizer
-        Summarize the following article.
+    article_title = article.title
+    article_text = article.text
 
-        Title:{article_title}
+    print(f"Title:{article.title}")
+    print(f"Text:{article.text}")
 
-        {article_text}
+    template = """You are an Intelligent Online Article Summarizer
+    Summarize the following article.
 
-        Generate the previous article
-        """
+    Title:{article_title}
 
-        prompt = template(article_title=article.title, article_text=article.text)
-        messages = [HumanMessage(content=prompt)]
+    {article_text}
 
-        summary = llm.messages
-        print(summary.content)
+    Generate the previous article
+    """
 
-    else:
-        print(f"Failed to summarize {article_url}")
+    prompt = template(article_title=article.title, article_text=article.text)
+    messages = [HumanMessage(content=prompt)]
+
+    summary = llm.messages
+    print(summary.content)
+
+    # else:
+    #     print(f"Failed to summarize {article_url}")
 except Exception as e:
     print(f"An error occured when summarizing {article_url}:{e}")
