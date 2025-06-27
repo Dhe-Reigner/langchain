@@ -147,66 +147,92 @@
 
 
 
-# News Article Summarizer
+# # News Article Summarizer
 
-from langchain_core.messages import HumanMessage, SystemMessage
+# from langchain_core.messages import HumanMessage, SystemMessage
+# from langchain_openai import ChatOpenAI
+# from newspaper import Article
+# from dotenv import load_dotenv
+
+# import os, requests, json
+
+
+# load_dotenv()
+# api_key = os.getenv("OPENAI_API_KEY")
+
+# llm = ChatOpenAI(model='gpt-4', temperature=0.7, openai_api_key = api_key)
+
+# headers = {
+#     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
+# }
+
+# article_url = "https://www.artificialintelligence-news.com/2022/01/25/meta-claims-new-ai-supercomputer-will-set-records/"
+
+# session = requests.Session()
+
+# try:
+#     response = session.get(article_url,headers=headers, timeout=100)
+
+#     # if response.status_code == 200:
+#     #     article=Article(article_url)
+#     #     article.download()
+#     #     article.parse()
+
+#     response.raise_for_status()
+
+#     article = Article(article_url)
+#     article.set_html(response.text)
+#     article.parse()
+
+#     article_title = article.title
+#     article_text = article.text
+
+#     print(f"Title:{article.title}")
+#     print(f"Text:{article.text}")
+
+#     template = """You are an Intelligent Online Article Summarizer
+#     Summarize the following article.
+
+#     Title:{article_title}
+
+#     {article_text}
+
+#     Generate the previous article
+#     """
+
+#     prompt = template(article_title=article.title, article_text=article.text)
+#     messages = [HumanMessage(content=prompt)]
+
+#     summary = llm.messages
+#     print(summary.content)
+
+#     # else:
+#     #     print(f"Failed to summarize {article_url}")
+# except Exception as e:
+#     print(f"An error occured when summarizing {article_url}:{e}")
+
+
+
+# Character Text Splitter
+
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import CharacterTextSplitter
 from langchain_openai import ChatOpenAI
-from newspaper import Article
 from dotenv import load_dotenv
-
-import os, requests, json
-
+import os
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, openai_api_key=api_key)
 
-llm = ChatOpenAI(model='gpt-4', temperature=0.7, openai_api_key = api_key)
+loader = PyPDFLoader("FEES STATEMENT.pdf")
+pages = loader.load_and_split()
 
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36'
-}
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
+texts = text_splitter.split_documents(pages)
 
-article_url = "https://www.artificialintelligence-news.com/2022/01/25/meta-claims-new-ai-supercomputer-will-set-records/"
+print(texts[0])
 
-session = requests.Session()
-
-try:
-    response = session.get(article_url,headers=headers, timeout=100)
-
-    # if response.status_code == 200:
-    #     article=Article(article_url)
-    #     article.download()
-    #     article.parse()
-
-    response.raise_for_status()
-
-    article = Article(article_url)
-    article.set_html(response.text)
-    article.parse()
-
-    article_title = article.title
-    article_text = article.text
-
-    print(f"Title:{article.title}")
-    print(f"Text:{article.text}")
-
-    template = """You are an Intelligent Online Article Summarizer
-    Summarize the following article.
-
-    Title:{article_title}
-
-    {article_text}
-
-    Generate the previous article
-    """
-
-    prompt = template(article_title=article.title, article_text=article.text)
-    messages = [HumanMessage(content=prompt)]
-
-    summary = llm.messages
-    print(summary.content)
-
-    # else:
-    #     print(f"Failed to summarize {article_url}")
-except Exception as e:
-    print(f"An error occured when summarizing {article_url}:{e}")
+# print(f"You have {len(texts)} documents")
+# print("Preview:")
+# print(texts[0].page_content)
