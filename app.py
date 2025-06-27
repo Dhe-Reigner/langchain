@@ -213,26 +213,52 @@
 
 
 
-# Character Text Splitter
+# # Character Text Splitter
 
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import CharacterTextSplitter
+# from langchain_community.document_loaders import PyPDFLoader
+# from langchain_text_splitters import CharacterTextSplitter
+# from langchain_openai import ChatOpenAI
+# from dotenv import load_dotenv
+# import os
+
+# load_dotenv()
+# api_key = os.getenv("OPENAI_API_KEY")
+# llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, openai_api_key=api_key)
+
+# loader = PyPDFLoader("FEES STATEMENT.pdf")
+# pages = loader.load_and_split()
+
+# text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
+# texts = text_splitter.split_documents(pages)
+
+# print(texts[0])
+
+# # print(f"You have {len(texts)} documents")
+# # print("Preview:")
+# # print(texts[0].page_content)
+
+
+# Recursive Chatracter Text Splitter
+
+from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, openai_api_key=api_key)
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.7, openai_api_key = api_key)
 
 loader = PyPDFLoader("FEES STATEMENT.pdf")
 pages = loader.load_and_split()
 
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
-texts = text_splitter.split_documents(pages)
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size = 500,
+    chunk_overlap = 50,
+    length_function = len,
+)
 
-print(texts[0])
-
-# print(f"You have {len(texts)} documents")
-# print("Preview:")
-# print(texts[0].page_content)
+docs = text_splitter.split_documents(pages)
+for doc in docs:
+    print(doc)
